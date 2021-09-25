@@ -1,6 +1,13 @@
 from pymongo import MongoClient
 
 
+class StatusCodes():
+    OK = 200
+    UNAUTHORIZED = 403
+    NOT_FOUND = 404
+    INTERNAL_SERVER_ERROR = 500
+
+
 def client_setup(uri="mongodb+srv://Hermes:ShellHacks2021@cluster0.qf7di.mongodb.net/ShellHacks2021?retryWrites=true&w=majority"):
     client = MongoClient(uri)
     return client["ShellHacks2021"]
@@ -23,9 +30,18 @@ def petitioner_info(petitioner_info: dict):
 def login_check(username: str):
 
     db = client_setup()
+    users_collect = db["Users"]
 
-    # if match return 200 and info
-    # if not, throw error
+    user = users_collect.findOne({"user_name": username})
+    if user == None:
+        status = StatusCodes.NOT_FOUND
+    else:
+        status = StatusCodes.OK
 
-    # store hashed password
-    # login stuff (find_one())
+    return status, user
+
+
+def create_petition(is_representative: bool, text_title: str, text_body: str):
+
+    if is_representative:
+        return
