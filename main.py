@@ -78,17 +78,14 @@ async def create_item(item: User):
     item.password = hash
     return item
 
+# works
+
 
 @app.post("/login/")
 async def create_item(item: User):
-    # hash = bcrypt.hashpw(item.password, salt)
-    # item.password = hash
+    hash = bcrypt.hashpw(b'item.password', salt)
+    item.password = hash
     return item
-
-
-# @app.get("/petitions/{petition_id}")
-# def read_item(item_id: int):
-#     return {"item_id": item_id, "q": q}
 
 
 @app.patch("/items/{petition_id}")
