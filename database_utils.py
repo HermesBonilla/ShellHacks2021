@@ -22,6 +22,8 @@ def petitioner_info(petitioner_info: dict):
 
 def login_check(username: str):
 
+    db = client_setup()
+
     # if match return 200 and info
     # if not, throw error
 
