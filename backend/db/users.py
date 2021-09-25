@@ -13,9 +13,5 @@ def login_check(username: str):
     users_collect = db["Users"]
 
     user = users_collect.findOne({"user_name": username})
-    if user == None:
-        status = StatusCodes.NOT_FOUND
-    else:
-        status = StatusCodes.OK
 
-    return status, user
+    return user
