@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+import datetime
 
 
 class StatusCodes():
@@ -28,7 +29,6 @@ def petitioner_info(petitioner_info: dict):
 
 
 def login_check(username: str):
-
     db = client_setup()
     users_collect = db["Users"]
 
@@ -42,6 +42,14 @@ def login_check(username: str):
 
 
 def create_petition(is_representative: bool, text_title: str, text_body: str):
-
     if is_representative:
-        return
+        return StatusCodes.UNAUTHORIZED
+
+    db = client_setup()
+    users_collect = db["Petitions"]
+
+    date = datetime.datetime.now()
+    date.strftime("%x  %X")
+
+    users_collect.insert_one(
+        {"text_file": text_title, "text_body": text_body, "date": date})
