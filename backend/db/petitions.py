@@ -1,5 +1,6 @@
 from database_utils import StatusCodes, client_setup
 import datetime
+import gridfs
 
 db = client_setup()
 users_collect = db["Petitions"]

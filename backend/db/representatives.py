@@ -2,7 +2,7 @@ from backend.database_utils import StatusCodes, client_setup
 import datetime
 
 db = client_setup()
-users_collect = db["Representatives"]
+users_collect = db["Representatives"]  # higher form of users
 
 
 def representatives_info(rep_info: dict):
