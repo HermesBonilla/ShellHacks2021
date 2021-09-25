@@ -11,12 +11,20 @@ const LoginForm = (props) => {
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>Username</Form.Label>
-              <Form.Control type="username" placeholder="Username" />
+              <Form.Control
+                name="username"
+                type="username"
+                placeholder="Username"
+              />
             </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label>Password</Form.Label>
-              <Form.Control type="password" placeholder="Password" />
+              <Form.Control
+                name="password"
+                type="password"
+                placeholder="Password"
+              />
             </Form.Group>
 
             <Form.Group>
