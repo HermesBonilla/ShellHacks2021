@@ -41,7 +41,7 @@ def login_check(username: str):
     return status, user
 
 
-def create_petition(is_representative: bool, text_title: str, text_body: str):
+def create_petition(is_representative: bool, text_title: str, text_body: str, for_count: int, against_count: int):
     if is_representative:
         return StatusCodes.UNAUTHORIZED
 
@@ -52,4 +52,9 @@ def create_petition(is_representative: bool, text_title: str, text_body: str):
     date.strftime("%x  %X")
 
     users_collect.insert_one(
-        {"text_file": text_title, "text_body": text_body, "date": date})
+        {"text_file": text_title,
+         "text_body": text_body,
+         "date": date,
+         "for_count": for_count,
+         "against_count": against_count
+         })
