@@ -5,10 +5,8 @@ from trycourier import Courier
 import requests
 import bcrypt
 
-salt = 10  # bcrypt.gensalt()
+salt = bcrypt.gensalt(10)
 API_KEY = 'AIzaSyD1awBg8COVxgukb6PjQK0FYdDCCyAS364'
-
-app = FastAPI()
 
 
 class User(BaseModel):
@@ -29,6 +27,9 @@ class Petition(BaseModel):
     body: str
     creator: str
    # image: img  # idk
+
+
+app = FastAPI()
 
 
 @app.get("/courier/")
@@ -57,6 +58,8 @@ def read_root():
 
     return (response.text)
 
+# works
+
 
 @app.get("/zipcode/{zip_code}")
 def read_root(zip_code: int):
@@ -65,15 +68,13 @@ def read_root(zip_code: int):
     ans = dict(response.json())
     return {"Hello": ans['results'][0]['address_components'][2]['long_name']}
 
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Optional[str] = None):
-    return {"item_id": item_id, "q": q}
+# works
 
 
 @app.post("/signup/")
 async def create_item(item: User):
-    hash = bcrypt.hashpw(item.password, salt)
+    print(item)
+    hash = bcrypt.hashpw(b'item.password', salt)
     item.password = hash
     return item
 
@@ -85,9 +86,9 @@ async def create_item(item: User):
     return item
 
 
-@app.get("/petitions/{petition_id}")
-def read_item(item_id: int):
-    return {"item_id": item_id, "q": q}
+# @app.get("/petitions/{petition_id}")
+# def read_item(item_id: int):
+#     return {"item_id": item_id, "q": q}
 
 
 @app.patch("/items/{petition_id}")
