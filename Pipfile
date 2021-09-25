@@ -7,8 +7,6 @@ name = "pypi"
 djangorestframework = "*"
 django-cors-headers = "*"
 django = "*"
+djongo = "*"
 
 [dev-packages]
-
-[requires]
-python_version = "3.8"
