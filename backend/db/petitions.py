@@ -14,5 +14,4 @@ def create_petition(user_info: dict):
 
     user_info['created_at'] = date
 
-    users_collect.insert_one(
-        {user_info})
+    users_collect.insert_one({user_info})
