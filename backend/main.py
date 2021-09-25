@@ -2,8 +2,10 @@ import bcrypt
 import requests
 from typing import Optional
 from pydantic import BaseModel
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status
 import bcrypt
+import db
+from database_utils import StatusCodes
 from twilio.rest import Client
 #from trycourier import Courier
 
@@ -32,6 +34,8 @@ class User(BaseModel):
     password: str
     zip_code: str
     is_representative: bool
+    representative_id: str
+    county: str
 
 # need to wait for lazaros code to be able to assign these
 
@@ -90,26 +94,38 @@ def read_root(zip_code: int):
 
 @app.post("/signup/")
 async def create_item(item: User):
-    print(item)
     hash = bcrypt.hashpw(b'item.password', salt)
     item.password = hash
+    request = f'https://maps.googleapis.com/maps/api/geocode/json?address={item.zip_code}&key={API_KEY}'
+    response = requests.get(request)
+    ans = dict(response.json())
+    item.county = ans['results'][0]['address_components'][2]['long_name']
+    db.users.create_user(item)
+    item.password = ""
     return item
 
 # works
 
 
-@app.post("/login/")
-async def create_item(item: User):
-    hash = bcrypt.hashpw(b'item.password', salt)
-    item.password = hash
-    return item
+@app.post("/login/", status_code=200)
+async def create_item(item: User, response: Response):
+    encoded_non_hashed_pw = (item.password).encode('utf-8')
+
+    user = db.users.login_check(item.user_name)
+    if not user:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return None
+
+    is_same_pwd = bcrypt.checkpw(encoded_non_hashed_pw, user.password)
+
+    if not is_same_pwd:
+        response.status_code = status.HTTP_404_NOT_FOUND
+    return user
 
 
 @app.post("/create_petition/")
 async def create_item(item: Petition):
-    hash = bcrypt.hashpw(b'item.password', salt)
-    item.password = hash
-    return item
+    return
 
 
 @app.patch("/items/{petition_id}")
