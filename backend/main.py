@@ -58,6 +58,7 @@ class LoginUser(BaseModel):
 
 class Petition(BaseModel):
     for_count: int
+    petition_id: int
     against_count: int
     text_title: str
     text_body: str
@@ -124,6 +125,13 @@ async def create_item(item: LoginUser, response: Response):
 
 @app.post("/create_petition/")
 async def create_item(item: Petition):
+    item.for_count = 0
+    item.against_count = 0
+    return item
+
+
+@app.get("/get_petition/")
+async def get_petition(item: Petition):
     item.for_count = 0
     item.against_count = 0
     return item
