@@ -1,11 +1,11 @@
 import { LOG_IN } from "../actionTypes";
 
 const defaultState = {
-  username: "",
+  user_name: "",
   first_name: "",
   last_name: "",
   authenticated: false,
-  is_rep: false,
+  is_representative: false,
   county: 0,
   zip_code: 0,
 };
@@ -13,7 +13,11 @@ const defaultState = {
 export default function user(state = defaultState, action) {
   switch (action.type) {
     case LOG_IN:
-      return { ...state, ...action.payload };
+      return {
+        ...state,
+        ...action.payload,
+        authenticated: action.user_name !== "",
+      };
     default:
       return state;
   }

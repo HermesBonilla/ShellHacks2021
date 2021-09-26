@@ -3,9 +3,12 @@ import requests
 from typing import Optional, List
 from pydantic import BaseModel
 from fastapi import FastAPI, Response, status
+from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
+import requests
 import bcrypt
 
-from db import representatives, db
+from db import representatives, users
 from database_utils import StatusCodes
 from twilio.rest import Client
 #from trycourier import Courier
@@ -40,8 +43,18 @@ class User(BaseModel):
     created_petitions: List[int]
     signed_petitions: List[int]
 
-# need to wait for lazaros code to be able to assign these
+class UserNoPwd(BaseModel):
+    first_name: str
+    last_name: str
+    user_name: str
+    zip_code: str
+    is_representative: bool
+    representative_id: str
+    county: str
 
+class LoginUser(BaseModel):
+    user_name: str
+    password: str
 
 class Petition(BaseModel):
     for_count: int
@@ -63,35 +76,19 @@ class Update(BaseModel):
 
 app = FastAPI()
 
+origins = [
+    "http://localhost*",
+    "http://localhost:3000*",
+    "http://localhost:3001*",
+]
 
-# @app.get("/courier/")
-# def read_root():
-#     url = "https://api.courier.com/send"
-
-#     payload = {
-#         "event": "EXAMPLE_NOTIFICATION",
-#         "recipient": "8ec8c99a-c5f7-455b-9f60-8222b8a27056",
-#         "brand": "W50NC77P524K14M5300PGPEK4JMJ",
-#         "data": {
-#             "name": "Martin Alvarez",
-#             "age": 27
-#         },
-#         "profile": {
-#             "phone_number": "7865431215",
-#             "email": "malva408@fiu.edu"
-#         }
-#     }
-#     headers = {
-#         "Accept": "application/json",
-#         "Content-Type": "application/json"
-#     }
-
-#     response = requests.request("POST", url, json=payload, headers=headers)
-
-#     return (response.text)
-
-# works
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/signup/")
 async def create_item(item: User):
@@ -102,23 +99,23 @@ async def create_item(item: User):
     response = requests.get(request)
     ans = dict(response.json())
     item.county = ans['results'][0]['address_components'][2]['long_name']
-    db.users.create_user(item)
-    item.password = ""
+    users.create_user(item.__dict__)
     return item
 
 # works
 
 
-@app.post("/login/", status_code=200)
-async def create_item(item: User, response: Response):
+@app.post("/login/")
+async def create_item(item: LoginUser, response: Response):
     encoded_non_hashed_pw = (item.password).encode('utf-8')
 
-    user = db.users.login_check(item.user_name)
+    user = users.login_check(item.user_name)
+    print(user)
     if not user:
         response.status_code = status.HTTP_404_NOT_FOUND
         return None
 
-    is_same_pwd = bcrypt.checkpw(encoded_non_hashed_pw, user.password)
+    is_same_pwd = bcrypt.checkpw(encoded_non_hashed_pw, (user['password']).encode('utf-8'))
 
     if not is_same_pwd:
         response.status_code = status.HTTP_404_NOT_FOUND
@@ -146,3 +143,6 @@ def change_count(item: Petition):
     # elif is_clicked(against_button):
     #     against_count += 1
     pass
+
+if __name__ == "__main__":
+    uvicorn.run(app, port=3001)

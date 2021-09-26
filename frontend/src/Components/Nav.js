@@ -37,6 +37,7 @@ const NavBar = (props) => {
                 id="basic-nav-dropdown"
                 align="end"
               >
+                <div className="ml-4">Hello, {props.first_name}</div>
                 <NavDropdown.Item>Settings</NavDropdown.Item>
               </NavDropdown>
             </Nav>
@@ -54,6 +55,7 @@ const mapStateToProps = (state) => {
 
   return {
     authenticated: user.authenticated,
+    first_name: user.first_name,
   };
 };
 

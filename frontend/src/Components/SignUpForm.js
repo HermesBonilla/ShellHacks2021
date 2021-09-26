@@ -1,37 +1,40 @@
 import { useState } from "react";
 import { Button, Modal, Form } from "react-bootstrap";
+import store from "../Redux/store";
+import { logIn } from "../Redux/actionTypes";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import API from "../Utils/api";
 
 const SignUpForm = (props) => {
   const [isRep, setIsRep] = useState(false);
+  const [isSignUpErr, setIsSignUpErr] = useState(false);
 
   const initialValues = {
-    userRole: "",
-    representativeId: "",
-    firstName: "",
-    lastName: "",
-    username: "",
+    is_representative: false,
+    representative_id: "",
+    first_name: "",
+    last_name: "",
+    user_name: "",
     password: "",
-    zipcode: 0,
+    zip_code: "",
   };
   const validationSchema = Yup.object({
-    userRole: Yup.string().nullable(),
-    representativeId: Yup.string().when("userRole", {
-      is: "1",
+    is_representative: Yup.boolean().nullable(),
+    representative_id: Yup.string().when("user_role", {
+      is: true,
       then: Yup.string()
         .min(6, "*Representative ID must be 6 characters long")
         .max(6, "*Representative ID must be 6 characters long")
         .required(),
     }),
-    firstName: Yup.string()
+    first_name: Yup.string()
       .max(99, "*First name must be less than 100 characters")
       .required("*First name is required"),
-    lastName: Yup.string()
+    last_name: Yup.string()
       .max(99, "*Last name must be less than 100 characters")
       .required("*Last name is required"),
-    username: Yup.string()
+    user_name: Yup.string()
       .min(3, "*Username must be greater than 2 characters")
       .max(24, "*Username must be less than 25 characters")
       .required("*Username is required"),
@@ -39,22 +42,31 @@ const SignUpForm = (props) => {
       .min(3, "*Password must be greater than 2 characters")
       .max(24, "*Password must be less than 25 characters")
       .required("*Password is required"),
-    zipcode: Yup.string()
+    zip_code: Yup.string()
       .min(5, "*Zipcode must be 5 characters long")
       .max(5, "*Zipcode must be 5 characters long")
       .required("*Zipcode is required"),
   });
 
   const handleSignUp = async (values, { resetForm }) => {
-    const res = await API.post("/signup", values);
-    console.log(res);
+    setIsRep(false);
     resetForm(initialValues);
-  };
 
-  const handleOnSelectChange = (value) => {
-    console.log(value);
-    if (value === "1") setIsRep(true);
-    else setIsRep(false);
+    await API.post("/signup", values)
+      .then(({ data, status }) => {
+        if (status === 200) {
+          store.dispatch(logIn(data));
+          setIsSignUpErr(false);
+          return true;
+        } else {
+          setIsSignUpErr(true);
+          return false;
+        }
+      })
+      .catch((e) => {
+        setIsSignUpErr(true);
+        return false;
+      });
   };
 
   return (
@@ -62,12 +74,25 @@ const SignUpForm = (props) => {
       <Modal {...props}>
         <Modal.Header closeButton>
           <Modal.Title>Sign Up</Modal.Title>
+          <Modal.Body>
+            {isSignUpErr ? (
+              <div className="error-message">
+                Error creating account, please try again.
+              </div>
+            ) : null}
+          </Modal.Body>
+          .
         </Modal.Header>
         <Modal.Body>
           <Formik
             initialValues={initialValues}
             validationSchema={validationSchema}
-            onSubmit={handleSignUp}
+            onSubmit={async (values, actions) => {
+              const successfulSignUp = await handleSignUp(values, actions);
+              if (successfulSignUp) {
+                props.onHide();
+              }
+            }}
           >
             {({
               values,
@@ -76,26 +101,27 @@ const SignUpForm = (props) => {
               isValid,
               handleChange,
               handleBlur,
+              handleSubmit,
               setFieldValue,
               setFieldTouched,
             }) => (
-              <Form>
+              <Form onSubmit={handleSubmit}>
                 <Form.Group className="mb-3">
                   <Form.Label htmlFor="disabledSelect">I am a...</Form.Label>
                   <Form.Select
                     onChange={(e) => {
-                      handleOnSelectChange(e.target.value);
-                      setFieldValue("userRole", e.target.value);
-                      setFieldTouched("userRole", true, true);
+                      setIsRep(e.target.value);
+                      setFieldValue("is_representative", e.target.value);
+                      setFieldTouched("is_representative", true, true);
                     }}
-                    name="userRole"
+                    name="is_representative"
                     onBlur={() => {
-                      handleBlur({ target: { name: "userRole" } });
+                      handleBlur({ target: { name: "is_representative" } });
                     }}
-                    value={values.userRole}
+                    value={values.is_representative}
                   >
-                    <option value="0">Citizen</option>
-                    <option value="1">State Representative</option>
+                    <option value={false}>Citizen</option>
+                    <option value={true}>State Representative</option>
                   </Form.Select>
                 </Form.Group>
 
@@ -104,18 +130,18 @@ const SignUpForm = (props) => {
                     <Form.Label>Representative ID</Form.Label>
                     <Form.Control
                       className="error"
-                      name="representativeId"
+                      name="representative_id"
                       placeholder="Representative ID"
                       onChange={handleChange}
                       onBlur={handleBlur}
-                      value={values.representativeId}
+                      value={values.representative_id}
                       isValid={
-                        touched.representativeId && !errors.representativeId
+                        touched.representative_id && !errors.representative_id
                       }
                     />
-                    {touched.representativeId && errors.representativeId ? (
+                    {touched.representative_id && errors.representative_id ? (
                       <div className="error-message">
-                        {errors.representativeId}
+                        {errors.representative_id}
                       </div>
                     ) : null}
                   </Form.Group>
@@ -125,30 +151,30 @@ const SignUpForm = (props) => {
                   <Form.Group className="mb-3 w-1/2 pr-2">
                     <Form.Label>First Name</Form.Label>
                     <Form.Control
-                      name="firstName"
+                      name="first_name"
                       placeholder="First name"
                       onChange={handleChange}
                       onBlur={handleBlur}
-                      value={values.firstName}
-                      isValid={touched.firstName && !errors.firstName}
+                      value={values.first_name}
+                      isValid={touched.first_name && !errors.first_name}
                     />
-                    {touched.firstName && errors.firstName ? (
-                      <div className="error-message">{errors.firstName}</div>
+                    {touched.first_name && errors.first_name ? (
+                      <div className="error-message">{errors.first_name}</div>
                     ) : null}
                   </Form.Group>
 
                   <Form.Group className="mb-3 w-1/2 pl-2">
                     <Form.Label>Last Name</Form.Label>
                     <Form.Control
-                      name="lastName"
+                      name="last_name"
                       placeholder="Last name"
                       onChange={handleChange}
                       onBlur={handleBlur}
-                      value={values.lastName}
-                      isValid={touched.lastName && !errors.lastName}
+                      value={values.last_name}
+                      isValid={touched.last_name && !errors.last_name}
                     />
-                    {touched.lastName && errors.lastName ? (
-                      <div className="error-message">{errors.lastName}</div>
+                    {touched.last_name && errors.last_name ? (
+                      <div className="error-message">{errors.last_name}</div>
                     ) : null}
                   </Form.Group>
                 </div>
@@ -156,16 +182,16 @@ const SignUpForm = (props) => {
                 <Form.Group className="mb-3">
                   <Form.Label>Username</Form.Label>
                   <Form.Control
-                    name="username"
+                    name="user_name"
                     type="username"
                     placeholder="Username"
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    value={values.username}
-                    isValid={touched.username && !errors.username}
+                    value={values.user_name}
+                    isValid={touched.user_name && !errors.user_name}
                   />
-                  {touched.username && errors.username ? (
-                    <div className="error-message">{errors.username}</div>
+                  {touched.user_name && errors.user_name ? (
+                    <div className="error-message">{errors.user_name}</div>
                   ) : null}
                 </Form.Group>
 
@@ -188,23 +214,23 @@ const SignUpForm = (props) => {
                 <Form.Group className="mb-3">
                   <Form.Label>Zipcode</Form.Label>
                   <Form.Control
-                    name="zipcode"
+                    name="zip_code"
                     placeholder="123456"
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    value={values.zipcode}
-                    isValid={touched.zipcode && !errors.zipcode}
+                    value={values.zip_code}
+                    isValid={touched.zip_code && !errors.zip_code}
                   />
-                  {touched.zipcode && errors.zipcode ? (
-                    <div className="error-message">{errors.zipcode}</div>
+                  {touched.zip_code && errors.zip_code ? (
+                    <div className="error-message">{errors.zip_code}</div>
                   ) : null}
                 </Form.Group>
 
-                <Form.Group className="text-center">
+                <div className="text-center">
                   <Button className="ml-1" type="submit">
                     Signup
                   </Button>
-                </Form.Group>
+                </div>
               </Form>
             )}
           </Formik>
