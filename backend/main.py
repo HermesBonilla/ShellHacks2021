@@ -1,9 +1,10 @@
 import bcrypt
 import requests
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 from fastapi import FastAPI, Response, status
 import bcrypt
+
 import db
 from database_utils import StatusCodes
 from twilio.rest import Client
@@ -36,6 +37,8 @@ class User(BaseModel):
     is_representative: bool
     representative_id: str
     county: str
+    created_petitions: List[int]
+    signed_petitions: List[int]
 
 # need to wait for lazaros code to be able to assign these
 
