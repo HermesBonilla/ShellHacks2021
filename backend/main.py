@@ -43,6 +43,7 @@ class User(BaseModel):
     created_petitions: List[int]
     signed_petitions: List[int]
 
+
 class UserNoPwd(BaseModel):
     first_name: str
     last_name: str
@@ -52,9 +53,11 @@ class UserNoPwd(BaseModel):
     representative_id: str
     county: str
 
+
 class LoginUser(BaseModel):
     user_name: str
     password: str
+
 
 class Petition(BaseModel):
     for_count: int
@@ -91,7 +94,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/signup/")
+
+def alertCreator(petition_id):
+    # if ()if get_petitiong_by_id(petition_id).for_count == 1000:
+    # send message with twilio
+
+
+@app.post("/signup/", response_model=UserNoPwd)
 async def create_item(item: User):
     hash = bcrypt.hashpw(b'item.password', salt)
     item.password = hash
@@ -116,7 +125,8 @@ async def create_item(item: LoginUser, response: Response):
         response.status_code = status.HTTP_404_NOT_FOUND
         return None
 
-    is_same_pwd = bcrypt.checkpw(encoded_non_hashed_pw, (user['password']).encode('utf-8'))
+    is_same_pwd = bcrypt.checkpw(
+        encoded_non_hashed_pw, (user['password']).encode('utf-8'))
 
     if not is_same_pwd:
         response.status_code = status.HTTP_404_NOT_FOUND
@@ -127,6 +137,19 @@ async def create_item(item: LoginUser, response: Response):
 async def create_item(item: Petition):
     item.for_count = 0
     item.against_count = 0
+    # Your Account SID from twilio.com/console
+    account_sid = "ACff702435d0ed5a311c9c5558e7f171b9"
+    # Your Auth Token from twilio.com/console
+    auth_token = "87f42b26f98d48204c8dbc37f878fe9d"
+
+    client = Client(account_sid, auth_token)
+
+    message = client.messages.create(
+        to="+17865433977",
+        from_="+12024172346",
+        body="Hello! Your petition has been created!")
+
+    print(message.sid)
     return item
 
 
@@ -151,6 +174,7 @@ def change_count(item: Petition):
     # elif is_clicked(against_button):
     #     against_count += 1
     pass
+
 
 if __name__ == "__main__":
     uvicorn.run(app, port=3001)
