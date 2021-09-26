@@ -13,9 +13,9 @@ def create_update(user_info: dict):
     if not user_info.is_representative:
         return StatusCodes.UNAUTHORIZED
 
-    comment_date = datetime.datetime.now()
-    comment_date.strftime("%X, %Y")
+    update_date = datetime.datetime.now()
+    update_date.strftime("%X, %Y")
 
-    users_collect['comment date'] = comment_date
+    users_collect['update date'] = update_date
 
     users_collect.insert_one({user_info})

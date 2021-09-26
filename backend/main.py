@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from fastapi import FastAPI, Response, status
 import bcrypt
 
-import db
+from db import representatives, db
 from database_utils import StatusCodes
 from twilio.rest import Client
 #from trycourier import Courier
@@ -44,13 +44,21 @@ class User(BaseModel):
 
 
 class Petition(BaseModel):
-    petition_id: str
     for_count: int
     against_count: int
     text_title: str
     text_body: str
     creator: str
+    county: str
    # image: img  # idk
+
+
+class Update(BaseModel):
+    text_body: str
+    creator: User
+    text_title: str
+    creation_date: str
+    petition_id: int
 
 
 app = FastAPI()
@@ -85,20 +93,11 @@ app = FastAPI()
 # works
 
 
-@app.get("/zipcode/{zip_code}")
-def read_root(zip_code: int):
-    request = f'https://maps.googleapis.com/maps/api/geocode/json?address={zip_code}&key={API_KEY}'
-    response = requests.get(request)
-    ans = dict(response.json())
-    return {"Hello": ans['results'][0]['address_components'][2]['long_name']}
-
-# works
-
-
 @app.post("/signup/")
 async def create_item(item: User):
     hash = bcrypt.hashpw(b'item.password', salt)
     item.password = hash
+    # GCP HERE
     request = f'https://maps.googleapis.com/maps/api/geocode/json?address={item.zip_code}&key={API_KEY}'
     response = requests.get(request)
     ans = dict(response.json())
@@ -128,11 +127,19 @@ async def create_item(item: User, response: Response):
 
 @app.post("/create_petition/")
 async def create_item(item: Petition):
-    return
+    item.for_count = 0
+    item.against_count = 0
+    return item
+
+
+@app.post("/create_update/")
+async def create_update(item: Update):
+    representatives.create_update(item.creator)
+    return item
 
 
 @app.patch("/items/{petition_id}")
-def change_count(item: User):
+def change_count(item: Petition):
     # if for is pressed increment count by 1, elif against is pressed increment that by 1.
     # if is_clicked(for_button):
     #     for_count += 1
