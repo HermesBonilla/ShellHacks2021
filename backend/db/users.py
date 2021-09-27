@@ -2,14 +2,14 @@ from database_utils import StatusCodes, client_setup
 
 COL = "Users"
 
-def create_user(user_info: dict):
+async def create_user(user_info: dict):
     users_collect = client_setup(COL)
     
-    users_collect.insert_one(dict(user_info))
+    id = await users_collect.insert_one(dict(user_info))
+    return id
 
-
-def login_check(username: str):
+async def login_check(username: str):
     users_collect = client_setup(COL)
-    user = users_collect.find_one({"user_name": username})
+    user = await users_collect.find_one({"user_name": str(username)})
 
     return user

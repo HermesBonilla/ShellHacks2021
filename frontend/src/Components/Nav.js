@@ -1,6 +1,7 @@
 import { Navbar, Container, Nav, NavDropdown } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
+import { Link } from "react-router-dom";
 import { connect } from "react-redux";
 import SearchBar from "./SearchBar";
 import LoginButton from "./Login";
@@ -9,7 +10,7 @@ const NavBar = (props) => {
   return (
     <Navbar bg="light" expand="lg">
       <Container fluid>
-        <Navbar.Brand href="/">PetitNearYou</Navbar.Brand>
+        <Navbar.Brand href="/">UKnow</Navbar.Brand>
         <Navbar.Toggle aria-controls="navbarScroll" />
         <Navbar.Collapse id="navbarScroll">
           <Nav
@@ -17,12 +18,28 @@ const NavBar = (props) => {
             style={{ maxHeight: "100px" }}
             navbarScroll
           >
-            <Nav.Link href="#home" className="text-purple-50">
+            <Link
+              to="/"
+              className="text-purple-50 block no-underline justify-center m-auto mx-2"
+              style={{ color: "rgba(0,0,0,.55)" }}
+            >
               Home
-            </Nav.Link>
-            <Nav.Link href="#explore">Explore</Nav.Link>
+            </Link>
+            <Link
+              to="/explore"
+              className="text-purple-50 block no-underline justify-center m-auto mx-2"
+              style={{ color: "rgba(0,0,0,.55)" }}
+            >
+              Explore
+            </Link>
             {props.authenticated ? (
-              <Nav.Link href="#dashboard">Dashboard</Nav.Link>
+              <Link
+                to="/dashboard"
+                className="text-purple-50 block no-underline justify-center m-auto mx-2"
+                style={{ color: "rgba(0,0,0,.55)" }}
+              >
+                Dashboard
+              </Link>
             ) : null}
           </Nav>
           <SearchBar />

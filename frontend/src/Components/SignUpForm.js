@@ -55,6 +55,7 @@ const SignUpForm = (props) => {
     await API.post("/signup", values)
       .then(({ data, status }) => {
         if (status === 200) {
+          console.log(data);
           store.dispatch(logIn(data));
           setIsSignUpErr(false);
           return true;

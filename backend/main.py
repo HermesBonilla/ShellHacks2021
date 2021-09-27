@@ -7,8 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import requests
 import bcrypt
+import asyncio
 
-from db import representatives, users
+from db import representatives, users, petitions
 from database_utils import StatusCodes
 from twilio.rest import Client
 #from trycourier import Courier
@@ -27,6 +28,8 @@ from twilio.rest import Client
 
 # print(message.sid)
 
+app = FastAPI()
+
 salt = bcrypt.gensalt(10)
 API_KEY = 'AIzaSyD1awBg8COVxgukb6PjQK0FYdDCCyAS364'
 
@@ -38,10 +41,10 @@ class User(BaseModel):
     password: str
     zip_code: str
     is_representative: bool
-    representative_id: str
-    county: str
-    created_petitions: List[int]
-    signed_petitions: List[int]
+    representative_id: Optional[str]
+    county: Optional[str]
+    created_petitions: Optional[List[int]] = []
+    signed_petitions: Optional[List[int]] = []
 
 
 class UserNoPwd(BaseModel):
@@ -60,13 +63,14 @@ class LoginUser(BaseModel):
 
 
 class Petition(BaseModel):
-    for_count: int
+    for_count: Optional[int]
+    against_count: Optional[int]
     petition_id: int
-    against_count: int
     text_title: str
     text_body: str
     creator: str
     county: str
+    tagged_rep: str
    # image: img  # idk
 
 
@@ -77,6 +81,7 @@ class Update(BaseModel):
     creation_date: str
     petition_id: int
 
+<<<<<<< HEAD
 
 app = FastAPI()
 
@@ -101,6 +106,9 @@ def alertCreator(petition_id):
 
 
 @app.post("/signup/", response_model=UserNoPwd)
+=======
+@app.post("/signup/")
+>>>>>>> 4419b62 (last push)
 async def create_item(item: User):
     hash = bcrypt.hashpw(b'item.password', salt)
     item.password = hash
@@ -109,17 +117,19 @@ async def create_item(item: User):
     response = requests.get(request)
     ans = dict(response.json())
     item.county = ans['results'][0]['address_components'][2]['long_name']
-    users.create_user(item.__dict__)
+
+    await users.create_user(item.__dict__)
+    
     return item
 
 # works
 
 
-@app.post("/login/")
+@app.post("/login/", status_code=200, response_model=User)
 async def create_item(item: LoginUser, response: Response):
     encoded_non_hashed_pw = (item.password).encode('utf-8')
 
-    user = users.login_check(item.user_name)
+    user = await users.login_check(item.user_name)
     print(user)
     if not user:
         response.status_code = status.HTTP_404_NOT_FOUND
@@ -137,6 +147,7 @@ async def create_item(item: LoginUser, response: Response):
 async def create_item(item: Petition):
     item.for_count = 0
     item.against_count = 0
+<<<<<<< HEAD
     # Your Account SID from twilio.com/console
     account_sid = "ACff702435d0ed5a311c9c5558e7f171b9"
     # Your Auth Token from twilio.com/console
@@ -150,6 +161,9 @@ async def create_item(item: Petition):
         body="Hello! Your petition has been created!")
 
     print(message.sid)
+=======
+    petitions.create_petition(item.__dict__)
+>>>>>>> 4419b62 (last push)
     return item
 
 
@@ -166,7 +180,7 @@ async def create_update(item: Update):
     return item
 
 
-@app.patch("/items/{petition_id}")
+@app.patch("/petitions/{petition_id}")
 def change_count(item: Petition):
     # if for is pressed increment count by 1, elif against is pressed increment that by 1.
     # if is_clicked(for_button):
@@ -175,6 +189,36 @@ def change_count(item: Petition):
     #     against_count += 1
     pass
 
+<<<<<<< HEAD
 
 if __name__ == "__main__":
     uvicorn.run(app, port=3001)
+=======
+@app.get("/petitions/all")
+async def all_petitions():
+    all_petitions = await petitions.find_all()
+
+    return list(all_petitions)
+
+@app.get("/reps/all")
+async def all_reps():
+    reps = await representatives.find_all()
+
+    return reps
+
+if __name__ == "__main__":
+    origins = [
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:3001",
+    ]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    uvicorn.run(app, port=3001)
+>>>>>>> 4419b62 (last push)

@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+import motor.motor_asyncio
 
 MONGO_URI = "mongodb+srv://Hermes:ShellHacks2021@cluster0.qf7di.mongodb.net/ShellHacks2021?retryWrites=true&w=majority"
 
@@ -10,5 +10,5 @@ class StatusCodes():
 
 
 def client_setup(collection, URI=MONGO_URI):
-    client = MongoClient(URI)
+    client = motor.motor_asyncio.AsyncIOMotorClient(URI)
     return client["ShellHacks2021"][collection]
